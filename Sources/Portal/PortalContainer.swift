@@ -38,19 +38,31 @@ public struct PortalContainer<Content: View>: View {
 
     public var body: some View {
         content
+            .onAppear {
+                updateOverlayWindow(for: scene)
+            }
             .onChange(of: scene) { newValue in
+                updateOverlayWindow(for: newValue)
+            }
+            .onDisappear {
                 #if canImport(UIKit)
-                if newValue == .active {
-                    OverlayWindowManager.shared.addOverlayWindow(
-                        with: portalModel,
-                        hideStatusBar: hideStatusBar
-                    )
-                } else {
-                    OverlayWindowManager.shared.removeOverlayWindow()
-                }
+                OverlayWindowManager.shared.removeOverlayWindow()
                 #endif
             }
             .environmentObject(portalModel)
+    }
+
+    private func updateOverlayWindow(for phase: ScenePhase) {
+        #if canImport(UIKit)
+        if phase == .active {
+            OverlayWindowManager.shared.addOverlayWindow(
+                with: portalModel,
+                hideStatusBar: hideStatusBar
+            )
+        } else {
+            OverlayWindowManager.shared.removeOverlayWindow()
+        }
+        #endif
     }
 }
 
